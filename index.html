@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <script src="/defaultcards.js"></script>
+  </head>
+  <body>
+    <div class="adminpanel hideonprint" style="height:500px">
+          <div id="jsonblob">
+            <textarea  style="width: 90%; min-height:400px" id="cardinfo"></textarea>
+            <br>
+            <button onclick="createallcards()">Generate cards</button>
+          </div>
+          <div id="updateform">
+            <form id="contact" onsubmit="event.preventDefault(); createnewcard();" style="width:80%">
+              <h3>Create card</h3>
+              <fieldset>
+              <input id="card-img" placeholder="Image Url"  style="width:100%" type="text" tabindex="1" required>
+              </fieldset>
+              <fieldset>  
+              <input id="card-heading" placeholder="Card title" style="width:100%" type="text" tabindex="2" required>
+              </fieldset>
+              <fieldset>
+              <textarea id="card-text" Rows=5 placeholder="Card text" style="width:100%"tabindex="3" required></textarea>
+              </fieldset>
+              <fieldset>
+              <input id="card-color" placeholder="Color" type="text" style="width:100%" tabindex="4" required>
+              </fieldset>
+              <fieldset>
+                <input id="card-type"  placeholder="Type" type="text" style="width:100%" tabindex="5" required>
+              </fieldset>
+              <fieldset>
+              <button>Create</button>
+              </fieldset>
+              
+              </form>
+          </div>
+          
+    </div>
+    <div id="pages">
+
+    </div>
+
+  <script>
+
+
+  var cardinfo=document.getElementById("cardinfo");
+  cardinfo.value = JSON.stringify(data,null,2);
+
+  function getContrast (hexcolor) {
+
+  // If a leading # is provided, remove it
+  if (hexcolor.slice(0, 1) === '#') {
+    hexcolor = hexcolor.slice(1);
+  }
+
+  // If a three-character hexcode, make six-character
+  if (hexcolor.length === 3) {
+    hexcolor = hexcolor.split('').map(function (hex) {
+      return hex + hex;
+    }).join('');
+  }
+
+  // Convert to RGB value
+  var r = parseInt(hexcolor.substr(0,2),16);
+  var g = parseInt(hexcolor.substr(2,2),16);
+  var b = parseInt(hexcolor.substr(4,2),16);
+
+  // Get YIQ ratio
+  var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
+  // Check contrast
+  return (yiq >= 128) ? 'black' : 'white';
+
+  };
+
+  function createcard(carddata){
+      var imgurl = carddata.img;
+      var header = carddata.heading;
+      var text = carddata.text;
+      
+      var cardtext = document.createElement("div");
+      cardtext.classList.add("card-text");
+      cardtext.innerHTML = "<h2>" + header + "</h2>\n";
+      cardtext.innerHTML += "<p>" + text.replace("\n","<br>") + "</p>";
+      var cardimg = document.createElement("div");
+      cardimg.classList.add("card-image");
+      cardimg.style['background'] = 'url("' + imgurl + '")';
+      cardimg.style['background-size'] = 'cover';
+      var card = document.createElement("div");
+      card.classList.add("card")
+      if (carddata.color != null){
+        card.style.background = carddata.color;
+        textcolor = getContrast(carddata.color);
+        cardtext.style.color = textcolor;
+      }
+      card.appendChild(cardimg);
+      card.appendChild(cardtext);
+      return card
+  }
+
+  function createnewcard(){
+    var newcard={};
+    newcard.img = document.getElementById("card-img").value;
+    newcard.heading = document.getElementById("card-heading").value;
+    newcard.text = document.getElementById("card-text").value;
+    newcard.color = document.getElementById("card-color").value;
+    newcard.type = document.getElementById("card-type").value;
+    try {
+      cardsdata=JSON.parse(document.getElementById("cardinfo").value);
+    } catch (ex) {
+      alert('Error creating new card due to error in existing JSON blob: ' + ex);
+      return
+    }
+    cardsdata.push(newcard);
+    document.getElementById("cardinfo").value = JSON.stringify(cardsdata,null,2);
+    createallcards();
+  }
+
+  function createtextcard(carddata){
+      var header = carddata.heading;
+      var text = carddata.text;
+      
+      var cardtext = document.createElement("div");
+      cardtext.classList.add("card-text");
+      cardtext.innerHTML = "<h2>" + header + "</h2>\n";
+      cardtext.innerHTML += "<p>" + text.replace("\n","<br>") + "</p>";
+      var card = document.createElement("div");
+      card.classList.add("textcard")
+      if (carddata.color != null){
+        card.style.background = carddata.color;
+        textcolor = getContrast(carddata.color);
+        cardtext.style.color = textcolor;
+      }
+      card.appendChild(cardtext);
+      return card
+  }
+
+
+  // <div class="stat">
+  //           <div class="value">4<sup>m</sup></div>
+  //           <div class="type">read</div>
+  //         </div>
+
+  function createdevcampcard(carddata){
+      var imgurl = carddata.img;
+      var header = carddata.heading;
+      var text = carddata.text;
+      var type = carddata.type;
+      var color = carddata.color;
+
+      var cardtext = document.createElement("div");
+      cardtext.classList.add("specialcard-text");
+      cardtext.innerHTML = "<h2>" + header + "</h2>\n";
+      cardtext.innerHTML += "<p>" + text.replace("\n","<br>") + "</p>";
+      var cardimg = document.createElement("div");
+      cardimg.classList.add("specialcard-image");
+      cardimg.style['background'] = 'url("' + imgurl + '")';
+      cardimg.style['background-size'] = 'cover';
+
+      var cardstats = document.createElement("div");
+      cardstats.classList.add("specialcard-stats");
+      cardstats.style.background = color;
+      textcolor = getContrast(carddata.color);
+      cardstats.style.textcolor = textcolor;
+
+      var statleft = document.createElement("div");
+      statleft.classList.add("stat");
+      cardstats.appendChild(statleft);
+
+      var statmiddle = document.createElement("div");
+      statmiddle.classList.add("stat");
+      statmiddle.innerHTML=`
+      <div class="value">{value}</div>
+      <div class="type">{type}</div>
+      `.replace("{value}","").replace("{type}",type);
+      cardstats.appendChild(statmiddle);
+
+      var statright = document.createElement("div");
+      statright.classList.add("stat");
+      cardstats.appendChild(statright);
+
+      var card = document.createElement("div");
+      card.classList.add("specialcard")
+
+      card.appendChild(cardimg);
+      card.appendChild(cardtext);
+      card.appendChild(cardstats);
+      return card
+  }
+
+
+  function createspecialcard(carddata){
+      var imgurl = carddata.img;
+      var header = carddata.heading;
+      var text = carddata.text;
+      var stats = carddata.stats
+
+      var cardtext = document.createElement("div");
+      cardtext.classList.add("specialcard-text");
+      cardtext.innerHTML = "<h2>" + header + "</h2>\n";
+      cardtext.innerHTML += "<p>" + text.replace("\n","<br>") + "</p>";
+      var cardimg = document.createElement("div");
+      cardimg.classList.add("specialcard-image");
+      cardimg.style['background'] = 'url("' + imgurl + '")';
+      cardimg.style['background-size'] = 'cover';
+
+      var cardstats = document.createElement("div");
+      cardstats.classList.add("specialcard-stats");
+
+      var statleft = document.createElement("div");
+      statleft.classList.add("stat");
+      statleft.innerHTML=`
+      <div class="value">{value}</div>
+      <div class="type">{type}</div>
+      `.replace("{value}",stats[0].value).replace("{type}",stats[0].type);
+      cardstats.appendChild(statleft);
+
+      var statmiddle = document.createElement("div");
+      statmiddle.classList.add("stat");
+      statmiddle.classList.add("border");
+      statmiddle.innerHTML=`
+      <div class="value">{value}</div>
+      <div class="type">{type}</div>
+      `.replace("{value}",stats[1].value).replace("{type}",stats[1].type);
+      cardstats.appendChild(statmiddle);
+
+      var statright = document.createElement("div");
+      statright.classList.add("stat");
+      statright.innerHTML=`
+      <div class="value">{value}</div>
+      <div class="type">{type}</div>
+      `.replace("{value}",stats[2].value).replace("{type}",stats[2].type);
+      cardstats.appendChild(statright);
+
+      var card = document.createElement("div");
+      card.classList.add("specialcard")
+      if (carddata.color != null){
+        card.style.background = carddata.color;
+        textcolor = getContrast(carddata.color);
+        cardtext.style.color = textcolor;
+      }
+      card.appendChild(cardimg);
+      card.appendChild(cardtext);
+      card.appendChild(cardstats);
+      return card
+  }
+
+
+    function createallcards(){
+      try {
+        cardsdata=JSON.parse(document.getElementById("cardinfo").value);
+      } catch (ex) {
+        alert('Wrong JSON Format: ' + ex);
+      }
+      
+      var pages = document.getElementById("pages");
+      pages.innerHTML="";
+      var counter = 1;
+      var page = document.createElement("div");
+      page.classList.add("page");
+      var container = document.createElement("div");
+      container.classList.add("container");
+      page.appendChild(container);
+      for (i of cardsdata){
+        var card;
+        if (i.img != null) {
+          if (i.stats != null){
+            card = createspecialcard(i);
+          } else {
+            if (i.type != null){
+              card = createdevcampcard(i);
+            } else {
+              card = createcard(i);
+            }
+          }
+        } else {
+          card = createtextcard(i);
+        }
+        container.appendChild(card)
+        if (counter % 4 == 0){
+          pages.appendChild(page);
+          page = document.createElement("div");
+          page.classList.add("page");
+          container = document.createElement("div");
+          container.classList.add("container");
+          page.appendChild(container);
+        }
+        counter += 1;
+      }
+      pages.appendChild(page);
+    }
+    createallcards(data);
+  </script>
+  </body>
+</html>
